@@ -28,7 +28,10 @@ export default Vue.extend({
 
       if (addressHistoryBlock && addressHistoryBlock.validateBlock()) {
         // Proceed to create a claim or submit the form (createClaim.ts)
-        console.log("Form is valid and ready to be submitted.");
+        console.log(
+          "Form is valid and ready to be submitted.",
+          addressHistoryBlock
+        );
         // Your form submission logic goes here
       } else {
         console.log("Form validation failed.");
@@ -39,19 +42,19 @@ export default Vue.extend({
 </script>
 
 <template>
-  <div class="container">
+  <div class="container card py-3 px-5 shadow mb-5 w-100 w-lg-50 mx-lg-auto">
     <FormComponent>
       <template v-slot:title>
         <TextComponent
           :text="user ? `Welcome Back ${user.firstName}` : `Hello and welcome`"
-          type="h1"
+          type="h3"
           classes="mt-4 mb-2"
         />
       </template>
       <template v-slot:subtitle>
         <TextComponent
           text="Please provide your address history for the past 3 years"
-          type="h4"
+          type="h6"
           classes="mb-4"
         />
       </template>
@@ -64,3 +67,17 @@ export default Vue.extend({
     </FormComponent>
   </div>
 </template>
+
+<style scoped>
+@media (min-width: 992px) {
+  .w-lg-50 {
+    width: 50% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .w-lg-50 {
+    width: 65% !important;
+  }
+}
+</style>

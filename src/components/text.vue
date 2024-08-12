@@ -1,5 +1,6 @@
 <script lang="ts">
 import Vue from "vue";
+
 export default Vue.extend({
   name: "TextComponent",
   props: {
@@ -21,6 +22,7 @@ export default Vue.extend({
   },
 });
 </script>
+
 <template>
   <component :is="type" :class="[classes]">{{ text }}</component>
 </template>

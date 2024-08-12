@@ -1,6 +1,9 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import FormView from "@/views/FormView.vue";
+import { getUserDataById } from "@/core/getUserDataById";
+import store from "@/store";
+
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
@@ -8,9 +11,17 @@ const routes: Array<RouteConfig> = [
     path: "/:userId",
     name: "form",
     component: FormView,
-    beforeEnter: (to, from, next) => {
+    beforeEnter: async (to, from, next) => {
       // TODO load the user data from getUserDataById and store it with VueX
-      next();
+      const userId = to.params.userId as string;
+      const [user, error] = await getUserDataById(userId);
+      if (error || !user) {
+        next({ path: "/" }); // Redirect if user not found
+      } else {
+        console.log(user);
+        store.commit("setUser", user); // Store user data
+        next();
+      }
     },
   },
   {

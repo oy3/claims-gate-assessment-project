@@ -1,11 +1,13 @@
 <script lang="ts">
 import Vue from "vue";
+import axios from "axios";
 import FormComponent from "@/components/form.vue";
 import TextComponent from "@/components/text.vue";
 import SubmitComponent from "@/components/submit.vue";
 import AddressHistoryBlock from "@/components/AddressHistoryBlock.vue";
 import { mapState } from "vuex";
 import { User } from "@/types";
+import { createClaim } from "@/core/createClaim";
 
 export default Vue.extend({
   name: "FormView",
@@ -17,22 +19,59 @@ export default Vue.extend({
   },
   computed: {
     ...mapState<User>({
-      user: (state: User) => state.user,
+      user: (state: { user: User }) => state.user,
     }),
   },
   methods: {
-    validateForm() {
+    async getIpAddress(): Promise<string | null> {
+      try {
+        const response = await axios.get("https://api.ipify.org?format=json");
+        return response.data.ip;
+      } catch (error) {
+        console.error("Failed to get IP address:", error);
+        return null;
+      }
+    },
+    async validateForm() {
       const addressHistoryBlock = this.$refs.addressHistoryBlock as Vue & {
         validateBlock: () => boolean;
+        getAddressData: () => any;
       };
 
       if (addressHistoryBlock && addressHistoryBlock.validateBlock()) {
         // Proceed to create a claim or submit the form (createClaim.ts)
-        console.log(
-          "Form is valid and ready to be submitted.",
-          addressHistoryBlock
+
+        const claimData = addressHistoryBlock.getAddressData();
+
+        const ipAddress = await this.getIpAddress();
+
+        if (!ipAddress) {
+          alert("Unable to retrieve IP address. Please try again.");
+          return;
+        }
+
+        // Call createClaim
+        const [claim, error] = await createClaim(
+          this.$store.state.user.id,
+          ipAddress,
+          claimData
         );
-        // Your form submission logic goes here
+
+        if (error) {
+          console.error("Error creating claim:", error);
+          alert(
+            "An error occurred while creating the claim. Please try again."
+          );
+        } else if (claim) {
+          console.log("Claim created successfully:", claim);
+          alert("Your claim has been submitted successfully.");
+          console.log(
+            "Form is valid and ready to be submitted.",
+            addressHistoryBlock
+          );
+
+          // Optionally, reset the form or redirect the user
+        }
       } else {
         console.log("Form validation failed.");
       }
@@ -42,7 +81,9 @@ export default Vue.extend({
 </script>
 
 <template>
-  <div class="container card py-3 px-5 shadow mb-5 w-100 w-lg-50 mx-lg-auto">
+  <div
+    class="container card py-3 px-3 px-sm-5 shadow mb-5 w-100 w-lg-50 w-md-65 mx-lg-auto"
+  >
     <FormComponent>
       <template v-slot:title>
         <TextComponent
@@ -75,8 +116,8 @@ export default Vue.extend({
   }
 }
 
-@media (max-width: 768px) {
-  .w-lg-50 {
+@media (min-width: 768px) {
+  .w-md-65 {
     width: 65% !important;
   }
 }

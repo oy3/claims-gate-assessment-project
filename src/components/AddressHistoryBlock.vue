@@ -28,6 +28,8 @@ export default Vue.extend({
           isStillLivingHere: false,
         },
       ] as Address[],
+      postcodeSuggestions: [] as string[],
+      suggestionVisible: [] as boolean[],
       errorMessage: "",
     };
   },
@@ -70,18 +72,43 @@ export default Vue.extend({
           "Please provide at least 3 years of address history.";
       }
     },
-    fetchPostcodeSuggestions(index: number) {
-      const postcode = this.addresses[index].postcode;
+    fetchPostcodeSuggestions(index: number, code: string) {
+      const postcode = code.trim();
       if (postcode.length >= 3) {
         axios
-          .get("https://api.postcodes.io/postcodes/${postcode}/autocomplete")
+          .get(`https://api.postcodes.io/postcodes/${postcode}/autocomplete`)
           .then((response) => {
-            console.log(response.data); // Implement a dropdown for suggestions if needed
+            this.$set(
+              this.postcodeSuggestions,
+              index,
+              response.data.result || []
+            );
+            this.showSuggestions(index);
           })
           .catch((error) => {
             console.error("Error fetching postcode suggestions:", error);
+            this.hideSuggestions(index);
           });
+      } else {
+        this.$set(this.postcodeSuggestions, index, []); // Clear suggestions if postcode is too short
+        this.hideSuggestions(index);
       }
+    },
+    showSuggestions(index: number) {
+      this.$set(this.suggestionVisible, index, true);
+    },
+    hideSuggestions(index: number) {
+      this.$set(this.suggestionVisible, index, false);
+    },
+    selectSuggestion(index: number, suggestion: string) {
+      this.addresses[index].postcode = suggestion;
+      this.hideSuggestions(index);
+    },
+    onBlur(index: number) {
+      // Delay hiding the suggestions to allow the click event to register
+      setTimeout(() => {
+        this.hideSuggestions(index);
+      }, 20);
     },
     validateBlock(): boolean {
       this.errorMessage = "";
@@ -100,6 +127,9 @@ export default Vue.extend({
         return false;
       }
       return true;
+    },
+    getAddressData() {
+      return this.addresses;
     },
   },
 });
@@ -162,17 +192,38 @@ export default Vue.extend({
         </div>
 
         <div class="col-sm">
-          <div class="form-group">
+          <div class="form-group position-relative">
             <label :for="'postcode-' + index">Postcode</label>
             <input
               type="text"
               class="form-control"
               v-model="address.postcode"
               :id="'postcode-' + index"
-              @input="fetchPostcodeSuggestions(index)"
+              @input="fetchPostcodeSuggestions(index, address.postcode)"
+              @focus="showSuggestions(index)"
+              @blur="onBlur(index)"
               required
             />
-            <!-- Optional: Render postcode suggestions dropdown here -->
+            <!-- Postcode suggestions dropdown -->
+            <div
+              class="list-group position-absolute w-100 postcode-dropdown"
+              :style="{ top: '100%', zIndex: 1000 }"
+              v-if="
+                postcodeSuggestions[index] &&
+                postcodeSuggestions[index].length &&
+                suggestionVisible[index]
+              "
+            >
+              <a
+                href="#"
+                class="list-group-item list-group-item-action"
+                v-for="suggestion in postcodeSuggestions[index]"
+                :key="suggestion"
+                @mousedown="selectSuggestion(index, suggestion)"
+              >
+                {{ suggestion }}</a
+              >
+            </div>
           </div>
         </div>
       </div>
@@ -234,4 +285,9 @@ export default Vue.extend({
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.postcode-dropdown {
+  max-height: 200px;
+  overflow-y: auto;
+}
+</style>

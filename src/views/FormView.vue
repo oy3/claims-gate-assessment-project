@@ -28,7 +28,9 @@ export default Vue.extend({
         const response = await axios.get("https://api.ipify.org?format=json");
         return response.data.ip;
       } catch (error) {
-        console.error("Failed to get IP address:", error);
+        alert(
+          "An error occurred while getting IP address. Please refresh and try again."
+        );
         return null;
       }
     },
@@ -67,24 +69,18 @@ export default Vue.extend({
 
         if (error) {
           submitComponent.stopLoading();
-          console.error("Error creating claim:", error);
           alert(
-            "An error occurred while creating the claim. Please try again."
+            "An error occurred while submitting form. Please refresh and try again."
           );
         } else if (claim) {
-          console.log("Claim created successfully:", claim);
-          alert("Your claim has been submitted successfully.");
-          console.log(
-            "Form is valid and ready to be submitted.",
-            addressHistoryBlock
-          );
+          alert("Form has been submitted successfully.");
 
-          // Optionally, reset the form or redirect the user
+          // Refresh page
           window.location.reload();
         }
       } else {
         submitComponent.stopLoading();
-        console.log("Form validation failed.");
+        alert("An error occurred. Please refresh and try again.");
       }
     },
   },
@@ -118,7 +114,7 @@ export default Vue.extend({
       </template>
     </FormComponent>
 
-    <div v-else>User do not exist</div>
+    <div v-else>User ID not found. Please verify url and try again.</div>
   </div>
 </template>
 

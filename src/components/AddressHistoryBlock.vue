@@ -86,7 +86,7 @@ export default Vue.extend({
             this.showSuggestions(index);
           })
           .catch((error) => {
-            console.error("Error fetching postcode suggestions:", error);
+            alert("An error occurred. Please refresh and try again.");
             this.hideSuggestions(index);
           });
       } else {

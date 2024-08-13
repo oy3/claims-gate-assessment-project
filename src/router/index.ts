@@ -18,7 +18,6 @@ const routes: Array<RouteConfig> = [
       if (error || !user) {
         next({ path: "/" }); // Redirect if user not found
       } else {
-        console.log(user);
         store.commit("setUser", user); // Store user data
         next();
       }

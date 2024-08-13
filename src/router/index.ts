@@ -26,7 +26,7 @@ const routes: Array<RouteConfig> = [
   },
   {
     path: "/",
-    name: "form",
+    name: "index",
     component: FormView,
   },
 ];

@@ -33,10 +33,17 @@ export default Vue.extend({
       }
     },
     async validateForm() {
+      const submitComponent = this.$refs.submitComponent as Vue & {
+        startLoading: () => void;
+        stopLoading: () => void;
+      };
+
       const addressHistoryBlock = this.$refs.addressHistoryBlock as Vue & {
         validateBlock: () => boolean;
         getAddressData: () => any;
       };
+
+      submitComponent.startLoading();
 
       if (addressHistoryBlock && addressHistoryBlock.validateBlock()) {
         // Create a claim or submit the form
@@ -46,6 +53,7 @@ export default Vue.extend({
         const ipAddress = await this.getIpAddress();
 
         if (!ipAddress) {
+          submitComponent.stopLoading();
           alert("Unable to retrieve IP address. Please try again.");
           return;
         }
@@ -58,6 +66,7 @@ export default Vue.extend({
         );
 
         if (error) {
+          submitComponent.stopLoading();
           console.error("Error creating claim:", error);
           alert(
             "An error occurred while creating the claim. Please try again."
@@ -74,6 +83,7 @@ export default Vue.extend({
           window.location.reload();
         }
       } else {
+        submitComponent.stopLoading();
         console.log("Form validation failed.");
       }
     },
@@ -85,7 +95,7 @@ export default Vue.extend({
   <div
     class="container card py-3 px-3 px-sm-5 shadow mb-5 w-100 w-lg-50 w-md-65 mx-lg-auto"
   >
-    <FormComponent>
+    <FormComponent v-if="user && Object.keys(user).length > 0">
       <template v-slot:title>
         <TextComponent
           :text="user ? `Welcome Back ${user.firstName}` : `Hello and welcome`"
@@ -104,9 +114,11 @@ export default Vue.extend({
         <AddressHistoryBlock ref="addressHistoryBlock" />
       </template>
       <template v-slot:submit>
-        <SubmitComponent @validate="validateForm" />
+        <SubmitComponent ref="submitComponent" @validate="validateForm" />
       </template>
     </FormComponent>
+
+    <div v-else>User do not exist</div>
   </div>
 </template>
 

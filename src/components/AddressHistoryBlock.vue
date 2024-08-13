@@ -112,11 +112,14 @@ export default Vue.extend({
     },
     validateBlock(): boolean {
       this.errorMessage = "";
+
+      // Check total address history duration
       if (this.totalYearsHistory < 3) {
         this.errorMessage =
           "Please provide at least 3 years of address history.";
         return false;
       }
+
       if (
         this.addresses.some(
           (address) =>
@@ -126,6 +129,18 @@ export default Vue.extend({
         this.errorMessage = "All fields are required.";
         return false;
       }
+
+      for (const address of this.addresses) {
+        if (
+          address.dateMovedOut &&
+          new Date(address.dateMovedOut) <= new Date(address.dateMovedIn)
+        ) {
+          this.errorMessage =
+            "The moved out date  must be after the moved in date.";
+          return false;
+        }
+      }
+
       return true;
     },
     getAddressData() {

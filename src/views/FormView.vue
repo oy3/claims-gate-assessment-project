@@ -39,7 +39,7 @@ export default Vue.extend({
       };
 
       if (addressHistoryBlock && addressHistoryBlock.validateBlock()) {
-        // Proceed to create a claim or submit the form (createClaim.ts)
+        // Create a claim or submit the form
 
         const claimData = addressHistoryBlock.getAddressData();
 
@@ -71,6 +71,7 @@ export default Vue.extend({
           );
 
           // Optionally, reset the form or redirect the user
+          window.location.reload();
         }
       } else {
         console.log("Form validation failed.");
